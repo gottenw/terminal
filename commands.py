@@ -66,7 +66,7 @@ Informações de Contato:
 -----------------------
 - Email:    joaoclaudino@proton.me
 - GitHub:   github.com/gottenw
-- Telegram: t.me/joaonaithen
+- Telegram: https://t.me/joaonaithen
 
 PS: Potencialmente te responderei mais rápido pelo Telegram ;)
     """
@@ -79,7 +79,7 @@ Meus Projetos Principais:
 1. Terminal Web Interativo (este projeto!)
    - Descrição: Um "portfólio" pessoal com a aparência de um terminal de desenvolvedor.
    - Tecnologias: Python, Flask, JavaScript, HTML/CSS.
-   - Link: [Link para o Repo no GitHub]
+   - Link: https://github.com/gottenw/terminal
 
 2. Modelo preditivo em WebApp para Handicap Asiático no Futebol (Em desenvolvimento contínuo)
    - Descrição: Um bot que utiliza a API do Footystats e modelagem preditiva para gerar fairlines em partidas de liga.
