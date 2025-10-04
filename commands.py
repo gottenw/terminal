@@ -1,36 +1,25 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+import re
 
-# --- Funções Auxiliares para o "Neofetch" ---
+# --- Função Auxiliar para criar links clicáveis ---
 
-def parse_user_agent(user_agent):
-    """Analisa a string User-Agent para extrair o OS e o Navegador de forma simples."""
-    os = "Desconhecido"
-    browser = "Desconhecido"
-
-    # Detecção do OS
-    if "Windows" in user_agent:
-        os = "Windows"
-    elif "Macintosh" in user_agent:
-        os = "macOS"
-    elif "Linux" in user_agent:
-        os = "Linux"
-    elif "Android" in user_agent:
-        os = "Android"
-    elif "iPhone" in user_agent or "iPad" in user_agent:
-        os = "iOS"
-
-    # Detecção do Navegador
-    if "Chrome" in user_agent and "Edg" not in user_agent:
-        browser = "Chrome"
-    elif "Firefox" in user_agent:
-        browser = "Firefox"
-    elif "Safari" in user_agent and "Chrome" not in user_agent:
-        browser = "Safari"
-    elif "Edg" in user_agent:
-        browser = "Edge"
+def linkify(text):
+    """
+    Encontra URLs no texto e os envolve com a tag <a> para torná-los clicáveis.
+    Funciona com http, https e domínios comuns como github.com.
+    """
+    # Expressão regular para encontrar URLs
+    pattern = r'((?:https?://|www\.|t\.me/|github\.com/)[^\s]+[a-zA-Z0-9/])'
     
-    return os, browser
+    def add_protocol(match):
+        url = match.group(1)
+        # Garante que a URL tenha um protocolo para o link funcionar corretamente
+        if not url.startswith(('http', 't.me')):
+            return f'<a href="https://{url}" target="_blank">{url}</a>'
+        return f'<a href="{url}" target="_blank">{url}</a>'
+
+    return re.sub(pattern, add_protocol, text)
 
 # --- Função Principal de Roteamento de Comandos ---
 
@@ -42,7 +31,6 @@ def get_command_output(command_string, client_data=None, headers=None):
     command = parts[0]
     args = parts[1:]
 
-    # Passa os dados do cliente para a função do comando, se ela aceitar
     command_function = COMMANDS.get(command, command_not_found)
     
     if command == 'welcome' and client_data and headers:
@@ -61,8 +49,6 @@ def show_welcome(args, client_data, headers):
     os, browser = parse_user_agent(headers.get('user_agent', ''))
     resolution = client_data.get('resolution', 'N/A')
     language = headers.get('language', 'N/A').split(',')[0]
-    
-    # Pega o horário atual do servidor
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     neofetch_output = f"""
@@ -78,13 +64,12 @@ def show_welcome(args, client_data, headers):
 
 def show_comandos(args):
     """Mostra todos os comandos disponíveis."""
-    # Exclui o comando 'welcome' da lista pública
     available_commands = " ".join([cmd for cmd in COMMANDS if cmd != 'welcome'])
     return f"Comandos disponíveis:\n{available_commands}"
 
 def show_contato(args):
     """Retorna suas informações de contato."""
-    return """
+    text = """
 Informações de Contato:
 -----------------------
 - Email:    joaoclaudino@proton.me
@@ -93,10 +78,11 @@ Informações de Contato:
 
 PS: Potencialmente te responderei mais rápido pelo Telegram ;)
     """
+    return linkify(text)
 
 def show_portfolio(args):
     """Retorna uma lista de projetos do portfólio."""
-    return """
+    text = """
 Meus Projetos Principais:
 -------------------------
 1. Terminal Web Interativo (este projeto!)
@@ -114,6 +100,7 @@ Meus Projetos Principais:
    - Tecnologias: Python, FastAPI, Supabase e Uvicorn.
    - Link: contate-me.
     """
+    return linkify(text)
 
 def show_sobremim(args):
     """Retorna uma breve biografia."""
@@ -131,24 +118,24 @@ Sou graduando em Licenciatura em História na UFAL.
 Gosto muito de probabilidades, ciência de dados e programação. Estou disposto á colaborar em projetos que envolvam desde criar simples bots, até automatizar modelos preditivos e/ou fazer um serviço de parceria sobre apostas.
 
 Entre em contato! ;)
-
     """
 
 def show_betting(args):
     """Detalha a proposta de parceria para apostas."""
-    return """
+    text = """
 Em caso de interesse em uma parceria para um serviço de apostas, vai algumas informações úteis:
 
 Tenho um registro de 446 apostas e 14.60% de yield.
-Meu p-value é cerca de 0.05%, isso significa que a chance de ter atingido um yield de 14.60% em 446 apostas por pura sorte é de apoenas 0.05%. Uma porcentagem muito pequena de chance.
+Meu p-value é cerca de 0.05%, isso significa que a chance de ter atingido um yield de 14.60% em 446 apostas por pura sorte é de apenas 0.05%. Uma porcentagem muito pequena de chance.
 
 Mais informações como odd média, taxa de acerto, CLV médio e etc. você pode buscar em:
 https://docs.google.com/spreadsheets/d/14B6X-VzrvK6KlY7KgGBYN85YUfH5FUtYxXPzTaOkpC4/edit?usp=sharing
 
 Se tiver interesse de fechar uma parceria comigo, entre em contato.
 
-PS: dados atualizados até 03/out/2025.
+PS: dados atualizados em 03 de Outubro de 2025.
     """
+    return linkify(text)
 
 def show_temas(args):
     """Gerencia os temas do terminal."""
@@ -171,14 +158,27 @@ Temas disponíveis:
 - solarized
     """
 
+def show_musica(args):
+    """Instruções para controlar a música."""
+    return """
+Controle de Música:
+------------------
+Use 'musica on' para tocar.
+Use 'musica off' para pausar.
+
+Você também pode usar o ícone de som no topo da janela.
+"""
+
 # --- Dicionário que Mapeia a String do Comando à sua Função ---
 
 COMMANDS = {
-    'welcome': show_welcome,  # Comando "secreto" para a tela inicial
+    'welcome': show_welcome,
     'comandos': show_comandos,
     'contato': show_contato,
     'portfolio': show_portfolio,
     'sobremim': show_sobremim,
     'betting': show_betting,
     'temas': show_temas,
+    'musica': show_musica,
 }
+
