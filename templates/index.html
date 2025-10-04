@@ -213,8 +213,6 @@
                 const shouldBeOn = forceState !== null ? forceState : audio.muted;
                 if (shouldBeOn) {
                     audio.muted = false;
-                    // ALTERAÇÃO: Garante que a música toque ao ativar o som.
-                    // É seguro chamar play() mesmo que já esteja tocando.
                     audio.play().catch(e => console.error("Audio play failed:", e));
                     iconSoundOn.style.display = 'block';
                     iconSoundOff.style.display = 'none';
@@ -233,12 +231,6 @@
                 const parts = lowerCommand.split(' ');
                 userInput.value = '';
 
-                if (parts[0] === 'musica') {
-                    if (parts[1] === 'on') toggleSound(true);
-                    else if (parts[1] === 'off') toggleSound(false);
-                    else addLine("Uso: musica <on|off>");
-                    return;
-                }
                 if (parts[0] === 'volume') {
                     const level = parseInt(parts[1]);
                     if (!isNaN(level) && level >= 0 && level <= 100) {

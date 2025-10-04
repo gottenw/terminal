@@ -2,39 +2,24 @@
 from datetime import datetime
 import re
 
-# --- FUNÇÃO QUE ESTAVA FALTANDO ---
 def parse_user_agent(user_agent):
     """Analisa a string User-Agent para extrair o OS e o Navegador de forma simples."""
     os = "Desconhecido"
     browser = "Desconhecido"
-
-    # Detecção do OS
-    if "Windows" in user_agent:
-        os = "Windows"
-    elif "Macintosh" in user_agent:
-        os = "macOS"
-    elif "Linux" in user_agent:
-        os = "Linux"
-    elif "Android" in user_agent:
-        os = "Android"
-    elif "iPhone" in user_agent or "iPad" in user_agent:
-        os = "iOS"
-
-    # Detecção do Navegador
-    if "Chrome" in user_agent and "Edg" not in user_agent:
-        browser = "Chrome"
-    elif "Firefox" in user_agent:
-        browser = "Firefox"
-    elif "Safari" in user_agent and "Chrome" not in user_agent:
-        browser = "Safari"
-    elif "Edg" in user_agent:
-        browser = "Edge"
-
+    if "Windows" in user_agent: os = "Windows"
+    elif "Macintosh" in user_agent: os = "macOS"
+    elif "Linux" in user_agent: os = "Linux"
+    elif "Android" in user_agent: os = "Android"
+    elif "iPhone" in user_agent or "iPad" in user_agent: os = "iOS"
+    if "Chrome" in user_agent and "Edg" not in user_agent: browser = "Chrome"
+    elif "Firefox" in user_agent: browser = "Firefox"
+    elif "Safari" in user_agent and "Chrome" not in user_agent: browser = "Safari"
+    elif "Edg" in user_agent: browser = "Edge"
     return os, browser
 
 def linkify(text):
     """Encontra URLs no texto e os envolve com a tag <a> para torná-los clicáveis."""
-    pattern = r'((?:https?://|www\.|t\.me/|github\.com/)[^\s]+[a-zA-Z0-9/])'
+    pattern = r'((?:https?://|www\.|t\.me/|github\.com/)[^\s]+[a-zA-Z0-9/&?=])'
     def add_protocol(match):
         url = match.group(1)
         if not url.startswith(('http', 't.me')):
@@ -43,7 +28,6 @@ def linkify(text):
     return re.sub(pattern, add_protocol, text)
 
 def get_command_output(command_string, client_data=None, headers=None):
-    """Função principal que recebe a string do comando e a roteia para a função correta."""
     parts = command_string.split()
     command = parts[0]
     args = parts[1:]
@@ -54,16 +38,13 @@ def get_command_output(command_string, client_data=None, headers=None):
         return command_function(args)
 
 def command_not_found(args):
-    """Retorno para comandos inválidos."""
     return "Comando não encontrado. Digite 'comandos' para ver a lista de opções."
 
 def show_welcome(args, client_data, headers):
-    """Gera a mensagem de boas-vindas no estilo neofetch."""
     os, browser = parse_user_agent(headers.get('user_agent', ''))
     resolution = client_data.get('resolution', 'N/A')
     language = headers.get('language', 'N/A').split(',')[0]
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     neofetch_output = f"""
     <span style="color: var(--purple);">joaoclaudino@terminal</span>
     --------------------
@@ -76,12 +57,10 @@ def show_welcome(args, client_data, headers):
     return neofetch_output.strip()
 
 def show_comandos(args):
-    """Mostra todos os comandos disponíveis."""
     available_commands = " ".join([cmd for cmd in COMMANDS if cmd != 'welcome'])
     return f"Comandos disponíveis:\n{available_commands}"
 
 def show_contato(args):
-    """Retorna suas informações de contato."""
     text = """
 Informações de Contato:
 -----------------------
@@ -94,7 +73,6 @@ PS: Potencialmente te responderei mais rápido pelo Telegram ;)
     return linkify(text)
 
 def show_portfolio(args):
-    """Retorna uma lista de projetos do portfólio."""
     text = """
 Meus Projetos Principais:
 -------------------------
@@ -116,7 +94,6 @@ Meus Projetos Principais:
     return linkify(text)
 
 def show_sobremim(args):
-    """Retorna uma breve biografia."""
     return """
 Olá, sou João Claudino! Alguns podem me conhecer como Naithèn.
 
@@ -134,7 +111,6 @@ Entre em contato! ;)
     """
 
 def show_betting(args):
-    """Detalha a proposta de parceria para apostas."""
     text = """
 Em caso de interesse em uma parceria para um serviço de apostas, vai algumas informações úteis:
 
@@ -146,12 +122,11 @@ https://docs.google.com/spreadsheets/d/14B6X-VzrvK6KlY7KgGBYN85YUfH5FUtYxXPzTaOk
 
 Se tiver interesse de fechar uma parceria comigo, entre em contato.
 
-PS: dados atualizados até 03/out/2025.
+PS: dados atualizados em 03 de Outubro de 2025.
     """
     return linkify(text)
 
 def show_temas(args):
-    """Gerencia os temas do terminal."""
     if len(args) == 2 and args[0] == 'set':
         theme_name = args[1]
         available_themes = ['dracula', 'nord', 'solarized']
@@ -159,7 +134,7 @@ def show_temas(args):
             return f"Tema alterado para '{theme_name}'."
         else:
             return f"Tema '{theme_name}' não encontrado. Use 'temas' para ver as opções."
-
+    
     return """
 Gerenciador de Temas:
 ---------------------
@@ -171,16 +146,14 @@ Temas disponíveis:
 - solarized
     """
 
+# ALTERAÇÃO: A função agora retorna os créditos da música.
 def show_musica(args):
-    """Instruções para controlar a música."""
-    return """
-Controle de Música:
-------------------
-Use 'musica on' para tocar.
-Use 'musica off' para pausar.
-
-Você também pode usar o ícone de som no topo da janela.
+    """Exibe os créditos da música de fundo."""
+    text = """
+música: I hope to be around (Men I Trust, cover by smile)
+https://www.youtube.com/watch?v=4ZhnfnaHvyk&list=RD4ZhnfnaHvyk&start_radio=1
 """
+    return linkify(text)
 
 COMMANDS = {
     'welcome': show_welcome,
@@ -192,3 +165,4 @@ COMMANDS = {
     'temas': show_temas,
     'musica': show_musica,
 }
+
