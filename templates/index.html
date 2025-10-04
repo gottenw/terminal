@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset e Configurações Globais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Tema Padrão: Dracula */
+            --background: #282a36;
+            --foreground: #f8f8f2;
+            --comment: #6272a4;
+            --cyan: #8be9fd;
+            --green: #50fa7b;
+            --orange: #ffb86c;
+            --pink: #ff79c6;
+            --purple: #bd93f9;
+            --red: #ff5555;
+            --yellow: #f1fa8c;
+        }
+
+        body[data-theme='nord'] {
+            --background: #2E3440;
+            --foreground: #D8DEE9;
+            --comment: #4C566A;
+            --cyan: #88C0D0;
+            --green: #A3BE8C;
+            --orange: #D08770;
+            --pink: #B48EAD;
+            --purple: #B48EAD;
+            --red: #BF616A;
+            --yellow: #EBCB8B;
+        }
+
+        body[data-theme='solarized'] {
+            --background: #002b36;
+            --foreground: #839496;
+            --comment: #586e75;
+            --cyan: #2aa198;
+            --green: #859900;
+            --orange: #cb4b16;
+            --pink: #d33682;
+            --purple: #6c71c4;
+            --red: #dc322f;
+            --yellow: #b58900;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: #1a1b26;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Estilo da Janela do Terminal */
+        .terminal-window {
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            background-color: var(--background);
+            border-radius: 8px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--comment);
+        }
+
+        .terminal-header {
+            background-color: #21222c;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--comment);
+        }
+
+        .header-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .red { background-color: var(--red); }
+        .yellow { background-color: var(--yellow); }
+        .green { background-color: var(--green); }
+
+        /* Estilo do Terminal em si */
+        #terminal {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            color: var(--foreground);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Customizando a barra de rolagem */
+        #terminal::-webkit-scrollbar {
+            width: 8px;
+        }
+        #terminal::-webkit-scrollbar-track {
+            background: var(--background);
+        }
+        #terminal::-webkit-scrollbar-thumb {
+            background-color: var(--comment);
+            border-radius: 4px;
+        }
+
+        .output-line pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .prompt {
+            color: var(--purple);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        #user-input {
+            background: transparent;
+            border: none;
+            color: var(--foreground);
+            font-family: inherit;
+            font-size: inherit;
+            width: 100%;
+            outline: none;
+        }
+    </style>
+</head>
+<body data-theme="dracula">
+
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="header-button red"></div>
+            <div class="header-button yellow"></div>
+            <div class="header-button green"></div>
+        </div>
+        <div id="terminal" onclick="document.getElementById('user-input').focus()">
+            <div id="output-container"></div>
+            <div class="input-line">
+                <span class="prompt">➜</span>
+                <input type="text" id="user-input" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const outputContainer = document.getElementById('output-container');
+            const userInput = document.getElementById('user-input');
+            const terminal = document.getElementById('terminal');
+
+            // O comando a ser digitado automaticamente após a saudação
+            const autoTypeCommand = 'comandos';
+
+            // Carrega o tema salvo ou usa o padrão
+            const savedTheme = localStorage.getItem('terminal-theme') || 'dracula';
+            document.body.setAttribute('data-theme', savedTheme);
+
+            function addLine(htmlContent, isCommand = false) {
+                const promptSymbol = `
+                    <div class="input-line">
+                        <span class="prompt">➜</span>
+                        <span>${htmlContent}</span>
+                    </div>`;
+                const outputLine = `
+                    <div class="output-line">
+                        <pre>${htmlContent}</pre>
+                    </div>`;
+                
+                outputContainer.innerHTML += isCommand ? promptSymbol : outputLine;
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+
+            async function executeCommand(command, clientData = null) {
+                if (command.trim() === '' && !clientData) return;
+
+                if (!command.includes('welcome')) {
+                    addLine(command, true);
+                }
+                
+                const lowerCommand = command.toLowerCase();
+                userInput.value = '';
+
+                if (lowerCommand === 'clear') {
+                    outputContainer.innerHTML = '';
+                    return;
+                }
+                
+                if (lowerCommand.startsWith('temas set ')) {
+                    const theme = lowerCommand.split(' ')[2];
+                    const availableThemes = ['dracula', 'nord', 'solarized'];
+                    if (availableThemes.includes(theme)) {
+                        document.body.setAttribute('data-theme', theme);
+                        localStorage.setItem('terminal-theme', theme); // Salva a preferência
+                        addLine(`Tema alterado para '${theme}'.`);
+                    } else {
+                        addLine(`Erro: Tema '${theme}' não encontrado.`);
+                    }
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command, client_data: clientData }),
+                    });
+                    const data = await response.json();
+                    addLine(data.output);
+                } catch (error) {
+                    console.error('Erro:', error);
+                    addLine('Erro de comunicação com o servidor.');
+                }
+            }
+
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    executeCommand(e.target.value);
+                }
+            });
+
+            function typeEffect(text, onComplete) {
+                let i = 0;
+                userInput.disabled = true;
+                const typing = setInterval(() => {
+                    if (i < text.length) {
+                        userInput.value += text.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typing);
+                        userInput.disabled = false;
+                        userInput.focus();
+                        onComplete();
+                    }
+                }, 90);
+            }
+
+            async function init() {
+                // 1. Coleta dados do cliente para o "neofetch"
+                const clientData = {
+                    resolution: `${window.screen.width}x${window.screen.height}`
+                };
+                
+                // 2. Executa o comando de boas-vindas "secreto"
+                await executeCommand('welcome', clientData);
+                
+                // 3. Aguarda um pouco e depois simula a digitação do próximo comando
+                setTimeout(() => {
+                    typeEffect(autoTypeCommand, () => {
+                        setTimeout(() => executeCommand(autoTypeCommand), 300);
+                    });
+                }, 500);
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+/* static/css/style.css */
+
+/* Reseta estilos padrão do navegador e define a fonte principal */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #0c0c0c;
+    color: #00ff41;
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* O contêiner principal do terminal */
+#terminal {
+    padding: 20px;
+    height: 100vh;
+    overflow-y: auto; /* Permite rolar o terminal */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Histórico de saídas e comandos */
+#output-container {
+    flex-grow: 1;
+}
+
+/* Estilo para as linhas de saída do terminal */
+.output-line {
+    white-space: pre-wrap; /* Mantém a formatação de espaços e quebras de linha */
+}
+
+/* Container da linha de input */
+.input-line {
+    display: flex;
+    align-items: center;
+}
+
+/* O prompt (ex: '> ') */
+.prompt {
+    margin-right: 8px;
+    white-space: nowrap; /* Impede que o prompt quebre linha */
+}
+
+/* O campo de input onde o usuário digita */
+#user-input {
+    background-color: transparent;
+    border: none;
+    color: #00ff41;
+    font-family: inherit;
+    font-size: inherit;
+    width: 100%;
+    outline: none; /* Remove a borda azul ao focar */
+}
+
+/* Animação do cursor piscando */
+.cursor {
+    display: inline-block;
+    background-color: #00ff41;
+    width: 10px;
+    height: 1.2em;
+    margin-left: 5px;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from, to {
+        background-color: transparent;
+    }
+    50% {
+        background-color: #00ff41;
+    }
+}
