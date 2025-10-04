@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfólio Terminal</title>
+    <title>terminal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
@@ -65,7 +65,6 @@
             padding: 20px;
         }
         
-        /* Estilo da Janela do Terminal */
         .terminal-window {
             width: 100%;
             max-width: 800px;
@@ -87,9 +86,7 @@
             border-bottom: 1px solid var(--comment);
         }
 
-        .header-buttons {
-            display: flex;
-        }
+        .header-buttons { display: flex; }
 
         .header-button {
             width: 12px;
@@ -101,7 +98,6 @@
         .yellow { background-color: var(--yellow); }
         .green { background-color: var(--green); }
         
-        /* NOVO: Estilos para o controle de som */
         .header-controls {
             margin-left: auto;
             cursor: pointer;
@@ -112,11 +108,8 @@
             fill: var(--comment);
             transition: fill 0.2s;
         }
-        .header-controls:hover svg {
-            fill: var(--foreground);
-        }
+        .header-controls:hover svg { fill: var(--foreground); }
 
-        /* Estilo do Terminal em si */
         #terminal {
             flex-grow: 1;
             padding: 15px;
@@ -126,13 +119,8 @@
             line-height: 1.6;
         }
 
-        /* Customizando a barra de rolagem */
-        #terminal::-webkit-scrollbar {
-            width: 8px;
-        }
-        #terminal::-webkit-scrollbar-track {
-            background: var(--background);
-        }
+        #terminal::-webkit-scrollbar { width: 8px; }
+        #terminal::-webkit-scrollbar-track { background: var(--background); }
         #terminal::-webkit-scrollbar-thumb {
             background-color: var(--comment);
             border-radius: 4px;
@@ -144,14 +132,11 @@
             font-family: inherit;
         }
 
-        /* NOVO: Estilos para os links clicáveis */
         .output-line a {
             color: var(--cyan);
             text-decoration: underline;
         }
-        .output-line a:hover {
-            color: var(--pink);
-        }
+        .output-line a:hover { color: var(--pink); }
 
         .input-line {
             display: flex;
@@ -177,7 +162,7 @@
 </head>
 <body data-theme="dracula">
 
-    <audio id="background-music" loop src="{{ url_for('static', filename='audio/background-music.mp3') }}"></audio>
+    <audio id="background-music" loop muted src="{{ url_for('static', filename='audio/background-audio.mp3') }}"></audio>
 
     <div class="terminal-window">
         <div class="terminal-header">
@@ -186,7 +171,7 @@
                 <div class="header-button yellow"></div>
                 <div class="header-button green"></div>
             </div>
-            <div id="sound-control" class="header-controls">
+            <div id="sound-control" class="header-controls" title="Ativar/desativar som">
                 <svg id="icon-sound-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.63 3.63a.996.996 0 0 0 0 1.41L7.29 8.7 9 10.41V12h4l5 4V4L9.42 2.42 3.63 3.63zM19 12h-2v-2h2v2zm-6-1.17l4-4V4.22l-4 4V10.83zM4.41 2.86 3 4.27l6 6V12H5v-2H3v6h4v1.73l4.29 4.29a.996.996 0 0 0 1.41 0l2.59-2.59L4.41 2.86zM12 12.27 14.73 15l-2.05.51L12 12.27z"/></svg>
                 <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </div>
@@ -205,15 +190,13 @@
             const outputContainer = document.getElementById('output-container');
             const userInput = document.getElementById('user-input');
             const terminal = document.getElementById('terminal');
-
-            // NOVO: Referências para os controles de áudio
             const audio = document.getElementById('background-music');
             const soundControl = document.getElementById('sound-control');
             const iconSoundOn = document.getElementById('icon-sound-on');
             const iconSoundOff = document.getElementById('icon-sound-off');
             
-            audio.volume = 0.15; // Volume inicial (15%)
-            let audioInitialized = false;
+            audio.volume = 0.15;
+            let firstInteraction = false;
 
             const autoTypeCommand = 'comandos';
             const savedTheme = localStorage.getItem('terminal-theme') || 'dracula';
@@ -221,18 +204,17 @@
 
             function addLine(htmlContent, isCommand = false) {
                 const promptSymbol = `<div class="input-line"><span class="prompt">➜</span><span>${htmlContent}</span></div>`;
-                // A tag <pre> agora recebe o conteúdo como HTML para renderizar os links
                 const outputLine = `<div class="output-line"><pre>${htmlContent}</pre></div>`;
-                
                 outputContainer.innerHTML += isCommand ? promptSymbol : outputLine;
                 terminal.scrollTop = terminal.scrollHeight;
             }
 
-            // NOVO: Função para controlar o som
             function toggleSound(forceState = null) {
                 const shouldBeOn = forceState !== null ? forceState : audio.muted;
                 if (shouldBeOn) {
                     audio.muted = false;
+                    // ALTERAÇÃO: Garante que a música toque ao ativar o som.
+                    // É seguro chamar play() mesmo que já esteja tocando.
                     audio.play().catch(e => console.error("Audio play failed:", e));
                     iconSoundOn.style.display = 'block';
                     iconSoundOff.style.display = 'none';
@@ -251,7 +233,6 @@
                 const parts = lowerCommand.split(' ');
                 userInput.value = '';
 
-                // NOVO: Comandos de música e volume tratados no front-end
                 if (parts[0] === 'musica') {
                     if (parts[1] === 'on') toggleSound(true);
                     else if (parts[1] === 'off') toggleSound(false);
@@ -270,8 +251,7 @@
                 }
 
                 if (lowerCommand === 'clear') {
-                    outputContainer.innerHTML = '';
-                    return;
+                    outputContainer.innerHTML = ''; return;
                 }
                 
                 if (lowerCommand.startsWith('temas set ')) {
@@ -308,16 +288,15 @@
             terminal.addEventListener('click', () => userInput.focus());
             soundControl.addEventListener('click', () => toggleSound());
 
-            // NOVO: Toca a música na primeira interação do usuário para contornar o bloqueio de autoplay
-            function initializeAudio() {
-                if (audioInitialized) return;
+            function unmuteOnFirstInteraction() {
+                if (firstInteraction) return;
                 toggleSound(true);
-                audioInitialized = true;
-                document.body.removeEventListener('click', initializeAudio);
-                document.body.removeEventListener('keydown', initializeAudio);
+                firstInteraction = true;
+                document.body.removeEventListener('click', unmuteOnFirstInteraction);
+                document.body.removeEventListener('keydown', unmuteOnFirstInteraction);
             }
-            document.body.addEventListener('click', initializeAudio);
-            document.body.addEventListener('keydown', initializeAudio);
+            document.body.addEventListener('click', unmuteOnFirstInteraction);
+            document.body.addEventListener('keydown', unmuteOnFirstInteraction);
 
 
             function typeEffect(text, onComplete) {
@@ -336,8 +315,11 @@
             }
 
             async function init() {
+                audio.play().catch(e => console.error("Autoplay inicial (mudo) foi bloqueado:", e));
+
                 const clientData = { resolution: `${window.screen.width}x${window.screen.height}` };
                 await executeCommand('welcome', clientData);
+                
                 setTimeout(() => {
                     typeEffect(autoTypeCommand, () => {
                         setTimeout(() => executeCommand(autoTypeCommand), 300);
@@ -350,3 +332,4 @@
     </script>
 </body>
 </html>
+

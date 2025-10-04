@@ -2,37 +2,52 @@
 from datetime import datetime
 import re
 
-# --- Função Auxiliar para criar links clicáveis ---
+# --- FUNÇÃO QUE ESTAVA FALTANDO ---
+def parse_user_agent(user_agent):
+    """Analisa a string User-Agent para extrair o OS e o Navegador de forma simples."""
+    os = "Desconhecido"
+    browser = "Desconhecido"
+
+    # Detecção do OS
+    if "Windows" in user_agent:
+        os = "Windows"
+    elif "Macintosh" in user_agent:
+        os = "macOS"
+    elif "Linux" in user_agent:
+        os = "Linux"
+    elif "Android" in user_agent:
+        os = "Android"
+    elif "iPhone" in user_agent or "iPad" in user_agent:
+        os = "iOS"
+
+    # Detecção do Navegador
+    if "Chrome" in user_agent and "Edg" not in user_agent:
+        browser = "Chrome"
+    elif "Firefox" in user_agent:
+        browser = "Firefox"
+    elif "Safari" in user_agent and "Chrome" not in user_agent:
+        browser = "Safari"
+    elif "Edg" in user_agent:
+        browser = "Edge"
+
+    return os, browser
 
 def linkify(text):
-    """
-    Encontra URLs no texto e os envolve com a tag <a> para torná-los clicáveis.
-    Funciona com http, https e domínios comuns como github.com.
-    """
-    # Expressão regular para encontrar URLs
+    """Encontra URLs no texto e os envolve com a tag <a> para torná-los clicáveis."""
     pattern = r'((?:https?://|www\.|t\.me/|github\.com/)[^\s]+[a-zA-Z0-9/])'
-    
     def add_protocol(match):
         url = match.group(1)
-        # Garante que a URL tenha um protocolo para o link funcionar corretamente
         if not url.startswith(('http', 't.me')):
             return f'<a href="https://{url}" target="_blank">{url}</a>'
         return f'<a href="{url}" target="_blank">{url}</a>'
-
     return re.sub(pattern, add_protocol, text)
 
-# --- Função Principal de Roteamento de Comandos ---
-
 def get_command_output(command_string, client_data=None, headers=None):
-    """
-    Função principal que recebe a string do comando e a roteia para a função correta.
-    """
+    """Função principal que recebe a string do comando e a roteia para a função correta."""
     parts = command_string.split()
     command = parts[0]
     args = parts[1:]
-
     command_function = COMMANDS.get(command, command_not_found)
-    
     if command == 'welcome' and client_data and headers:
         return command_function(args, client_data, headers)
     else:
@@ -41,8 +56,6 @@ def get_command_output(command_string, client_data=None, headers=None):
 def command_not_found(args):
     """Retorno para comandos inválidos."""
     return "Comando não encontrado. Digite 'comandos' para ver a lista de opções."
-
-# --- Funções de Saída para cada Comando ---
 
 def show_welcome(args, client_data, headers):
     """Gera a mensagem de boas-vindas no estilo neofetch."""
@@ -133,7 +146,7 @@ https://docs.google.com/spreadsheets/d/14B6X-VzrvK6KlY7KgGBYN85YUfH5FUtYxXPzTaOk
 
 Se tiver interesse de fechar uma parceria comigo, entre em contato.
 
-PS: dados atualizados em 03 de Outubro de 2025.
+PS: dados atualizados até 03/out/2025.
     """
     return linkify(text)
 
@@ -146,7 +159,7 @@ def show_temas(args):
             return f"Tema alterado para '{theme_name}'."
         else:
             return f"Tema '{theme_name}' não encontrado. Use 'temas' para ver as opções."
-    
+
     return """
 Gerenciador de Temas:
 ---------------------
@@ -169,8 +182,6 @@ Use 'musica off' para pausar.
 Você também pode usar o ícone de som no topo da janela.
 """
 
-# --- Dicionário que Mapeia a String do Comando à sua Função ---
-
 COMMANDS = {
     'welcome': show_welcome,
     'comandos': show_comandos,
@@ -181,4 +192,3 @@ COMMANDS = {
     'temas': show_temas,
     'musica': show_musica,
 }
-
